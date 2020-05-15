@@ -6,6 +6,7 @@ variables:
   buildConfiguration: 'Release'
   wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
   dotnetSdkVersion: '3.1.100'
+  releaseBranchName: 'release' # Create new variable for releasebranch
 
     variables:
       wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
@@ -57,6 +58,15 @@ variables:
     - publish: '$(Build.ArtifactStagingDirectory)'
       artifact: drop
 #####-------------Deploy--------
+- stage: 'Dev'
+  displayName: 'Deploy to the dev environment'
+  dependsOn: Build
+  condition: |
+    and
+    (
+      succeeded(),
+      eq(variables['Build.SourceBranchName'], variables['releaseBranchName'])
+    )
 - stage: 'Deploy'
   displayName: 'Deploy the web application'
   dependsOn: Build
