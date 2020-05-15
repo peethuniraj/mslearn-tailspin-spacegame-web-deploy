@@ -76,7 +76,7 @@ stages:
 
 #####-------------Deploy--------
 
-    - stage: 'Dev'
+  - stage: 'Dev'
       displayName: 'Deploy to the dev environment'
       dependsOn: Build
       condition: |
@@ -103,4 +103,28 @@ stages:
                 inputs:
                   azureSubscription: 'Resource Manager - Tailspin - Space Game'
                   appName: '$(WebAppNameDev)'
+                  package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+- stage: 'Test'
+      displayName: 'Deploy to the Test environment'
+      dependsOn: dev
+      condition:  eq(variables['Build.Reason'],'schedule')
+        
+      jobs:
+      - deployment: Deploy
+        pool:
+          vmImage: 'ubuntu-16.04'
+        environment: test
+        variables:
+        - group: Release
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: current
+                artifact: drop
+              - task: AzureWebApp@1
+                displayName: 'Azure App Service Deploy: website'
+                inputs:
+                  azureSubscription: 'Resource Manager - Tailspin - Space Game'
+                  appName: '$(WebAppNameTest)'
                   package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
